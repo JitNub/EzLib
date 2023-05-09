@@ -1,0 +1,16 @@
+C:\Users\Johan\source\repos\EzLib\EzLib.Services\bin\Debug\net6.0\appsettings.json
+C:\Users\Johan\source\repos\EzLib\EzLib.Services\bin\Debug\net6.0\EzLib.Services.deps.json
+C:\Users\Johan\source\repos\EzLib\EzLib.Services\bin\Debug\net6.0\EzLib.Services.dll
+C:\Users\Johan\source\repos\EzLib\EzLib.Services\bin\Debug\net6.0\EzLib.Services.pdb
+C:\Users\Johan\source\repos\EzLib\EzLib.Services\bin\Debug\net6.0\EzLib.Database.dll
+C:\Users\Johan\source\repos\EzLib\EzLib.Services\bin\Debug\net6.0\EzLib.Database.pdb
+C:\Users\Johan\source\repos\EzLib\EzLib.Services\obj\Debug\net6.0\EzLib.Services.csproj.AssemblyReference.cache
+C:\Users\Johan\source\repos\EzLib\EzLib.Services\obj\Debug\net6.0\EzLib.Services.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Johan\source\repos\EzLib\EzLib.Services\obj\Debug\net6.0\EzLib.Services.AssemblyInfoInputs.cache
+C:\Users\Johan\source\repos\EzLib\EzLib.Services\obj\Debug\net6.0\EzLib.Services.AssemblyInfo.cs
+C:\Users\Johan\source\repos\EzLib\EzLib.Services\obj\Debug\net6.0\EzLib.Services.csproj.CoreCompileInputs.cache
+C:\Users\Johan\source\repos\EzLib\EzLib.Services\obj\Debug\net6.0\EzLib.Services.csproj.CopyComplete
+C:\Users\Johan\source\repos\EzLib\EzLib.Services\obj\Debug\net6.0\EzLib.Services.dll
+C:\Users\Johan\source\repos\EzLib\EzLib.Services\obj\Debug\net6.0\refint\EzLib.Services.dll
+C:\Users\Johan\source\repos\EzLib\EzLib.Services\obj\Debug\net6.0\EzLib.Services.pdb
+C:\Users\Johan\source\repos\EzLib\EzLib.Services\obj\Debug\net6.0\ref\EzLib.Services.dll
