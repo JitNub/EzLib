@@ -1,0 +1,19 @@
+﻿@model EzLib.Models.LibraryItem
+
+@{
+    ViewData["Title"] = "Return";
+}
+
+<h1>Return @Model.Title</h1>
+
+<form asp-action="Return" asp-route-id="@Model.Id" method="post">
+    <div class="form-group">
+        <label asp-for="Borrower" class="control-label">Borrower</label>
+        <input asp-for="Borrower" class="form-control" disabled />
+    </div>
+
+    <div class="form-group">
+        <button type="submit" name="submit" value="yes" class="btn btn-primary">Return</button>
+        <a asp-action="Index" class="btn btn-secondary">Back</a>
+    </div>
+</form>

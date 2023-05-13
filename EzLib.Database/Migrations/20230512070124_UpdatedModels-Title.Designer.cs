@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EzLib.Database.Migrations
 {
     [DbContext(typeof(EzLibContext))]
-    [Migration("20230509125052_SeedData")]
-    partial class SeedData
+    [Migration("20230512070124_UpdatedModels-Title")]
+    partial class UpdatedModelsTitle
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -84,14 +84,16 @@ namespace EzLib.Database.Migrations
 
                     b.Property<string>("Author")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<DateTime?>("BorrowDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Borrower")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
@@ -107,7 +109,8 @@ namespace EzLib.Database.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("Type")
                         .IsRequired()

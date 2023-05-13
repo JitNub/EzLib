@@ -1,6 +1,6 @@
 ﻿using EzLib.Data;
 using EzLib.Models;
-using EzLib.Services;
+using EzLib.Services.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,21 +20,22 @@ namespace EzLib.Controllers
         // GET: Categories
         public async Task<IActionResult> Index()
         {
-            return _context.Category != null ?
-                        View(await _context.Category.ToListAsync()) :
-                        Problem("Entity set 'EzLibContext.Category'  is null.");
+            try
+            {
+                var categories = await _categoryService.GetCategoriesAsync();
+                return View(categories);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Problem(ex.Message);
+            }
         }
 
         // GET: Categories/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null || _context.Category == null)
-            {
-                return NotFound();
-            }
+            var category = await _categoryService.GetCategoryByIdAsync(id);
 
-            var category = await _context.Category
-                .FirstOrDefaultAsync(m => m.Id == id);
             if (category == null)
             {
                 return NotFound();
@@ -43,7 +44,7 @@ namespace EzLib.Controllers
             return View(category);
         }
 
-        // GET: Categories/Create
+        // GET: Categories/Create   // No seperate service needed
         public IActionResult Create()
         {
             return View();
@@ -64,8 +65,7 @@ namespace EzLib.Controllers
                     return View(category);
                 }
 
-                _context.Add(category);
-                await _context.SaveChangesAsync();
+                await _categoryService.CreateCategoryAsync(category);
                 return RedirectToAction(nameof(Index));
             }
 
@@ -73,6 +73,7 @@ namespace EzLib.Controllers
         }
 
         // GET: Categories/Edit/5
+        [HttpGet]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null || _context.Category == null)
@@ -80,11 +81,12 @@ namespace EzLib.Controllers
                 return NotFound();
             }
 
-            var category = await _context.Category.FindAsync(id);
+            var category = await _categoryService.GetCategoryAsync(id);
             if (category == null)
             {
                 return NotFound();
             }
+
             return View(category);
         }
 
@@ -102,37 +104,39 @@ namespace EzLib.Controllers
 
             if (ModelState.IsValid)
             {
-                try
+                if (!await _categoryService.IsCategoryNameUnique(category))
                 {
-                    _context.Update(category);
-                    await _context.SaveChangesAsync();
+                    ModelState.AddModelError(string.Empty, "Category name must be unique.");
+                    return View(category);
                 }
-                catch (DbUpdateConcurrencyException)
+
+                bool updateResult = await _categoryService.UpdateCategoryAsync(category);
+
+                if (!updateResult)
                 {
-                    if (!CategoryExists(category.Id))
+                    if (!_categoryService.CategoryExists(category.Id))
                     {
                         return NotFound();
                     }
                     else
                     {
-                        throw;
+                        throw new Exception("An error occurred while updating the category.");
                     }
                 }
+
                 return RedirectToAction(nameof(Index));
             }
+
             return View(category);
         }
 
-        // GET: Categories/Delete/5
+        // klar
+
+        // GET: Categories/Delete/5     // funkar denna tro?
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null || _context.Category == null)
-            {
-                return NotFound();
-            }
+            var category = await _categoryService.GetCategoryByIdAsync(id);
 
-            var category = await _context.Category
-                .FirstOrDefaultAsync(m => m.Id == id);
             if (category == null)
             {
                 return NotFound();
@@ -141,7 +145,7 @@ namespace EzLib.Controllers
             return View(category);
         }
 
-        // POST: Categories/Delete/5
+        // POST: Categories/Delete/5        // denna kvar bara?
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -164,11 +168,6 @@ namespace EzLib.Controllers
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool CategoryExists(int id)
-        {
-            return (_context.Category?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

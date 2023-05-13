@@ -1,38 +1,53 @@
 ﻿using EzLib.Data;
 using EzLib.Models;
+using EzLib.Services.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 
 namespace EzLib.Controllers
 {
     public class LibraryItemsController : Controller
     {
         private readonly EzLibContext _context;
+        private readonly IAcronymGeneratorService _acronymGeneratorService;
+        private readonly ILibraryItemsService _libraryItemsService;
+        private readonly IBorrowReturnLibraryItemService _borrowReturnLibraryItemService;
+        private readonly ILibraryItemValidationService _libraryItemValidationService;
+        private readonly IBlockedFieldClearingService _blockedFieldClearingService;
 
-        public LibraryItemsController(EzLibContext context)
+        public LibraryItemsController(EzLibContext context, IAcronymGeneratorService acronymGeneratorService, ILibraryItemsService libraryItemsService, IBorrowReturnLibraryItemService borrowReturnLibraryItemService, ILibraryItemValidationService libraryItemValidationService,
+            IBlockedFieldClearingService blockedFieldClearingService)
         {
             _context = context;
+            _acronymGeneratorService = acronymGeneratorService;
+            _libraryItemsService = libraryItemsService;
+            _borrowReturnLibraryItemService = borrowReturnLibraryItemService;
+            _libraryItemValidationService = libraryItemValidationService;
+            _blockedFieldClearingService = blockedFieldClearingService;
         }
 
         // GET: LibraryItems
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string sortByType = null)
         {
-            var ezLibContext = _context.LibraryItem.Include(l => l.Category);
-            return View(await ezLibContext.ToListAsync());
+            if (!string.IsNullOrEmpty(sortByType))
+            {
+                HttpContext.Session.SetString("sortByType", sortByType);
+            }
+            else if (HttpContext.Session.GetString("sortByType") != null)
+            {
+                sortByType = HttpContext.Session.GetString("sortByType");
+            }
+
+            var (libraryItems, updatedSortByType) = await _libraryItemsService.GetLibraryItemsAsync(sortByType);
+
+            return View(libraryItems);
         }
 
         // GET: LibraryItems/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null || _context.LibraryItem == null)
-            {
-                return NotFound();
-            }
+            var libraryItem = await _libraryItemsService.GetLibraryItemDetailsAsync(id);
 
-            var libraryItem = await _context.LibraryItem
-                .Include(l => l.Category)
-                .FirstOrDefaultAsync(m => m.Id == id);
             if (libraryItem == null)
             {
                 return NotFound();
@@ -41,7 +56,7 @@ namespace EzLib.Controllers
             return View(libraryItem);
         }
 
-        // GET: LibraryItems/Create
+        // GET: LibraryItems/Create     // No seperate service needed
         public IActionResult Create()
         {
             ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "CategoryName");
@@ -53,14 +68,13 @@ namespace EzLib.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,CategoryId,Title,Author,Pages,RunTimeMinutes,IsBorrowable,Borrower,BorrowDate,Type")] LibraryItem libraryItem)
+        public async Task<IActionResult> Create([Bind("Id,CategoryId,Title,Author,Pages,RunTimeMinutes,IsBorrowable,Type")] LibraryItem libraryItem)
         {
-            foreach (var modelState in ModelState.Values)
+            var validationErrors = _libraryItemValidationService.ValidateLibraryItem(libraryItem);
+
+            foreach (var error in validationErrors)
             {
-                foreach (var error in modelState.Errors)
-                {
-                    Console.WriteLine(error.ErrorMessage);
-                }
+                ModelState.Remove(error.Key);
             }
 
             if (ModelState.IsValid)
@@ -69,9 +83,12 @@ namespace EzLib.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "CategoryName", libraryItem.CategoryId);
+
+            ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Name", libraryItem.CategoryId);
             return View(libraryItem);
         }
+
+
 
         // GET: LibraryItems/Edit/5
         public async Task<IActionResult> Edit(int? id)
@@ -81,47 +98,56 @@ namespace EzLib.Controllers
                 return NotFound();
             }
 
-            var libraryItem = await _context.LibraryItem.FindAsync(id);
+            var libraryItem = await _libraryItemsService.GetLibraryItemAsync(id);
             if (libraryItem == null)
             {
                 return NotFound();
             }
+
+            // Check if the item is !borrowable and the borrower is !empty
+            if (!libraryItem.IsBorrowable && !string.IsNullOrEmpty(libraryItem.Borrower))
+            {
+                return Forbid(); // Return forbidden status or redirect to an unauthorized page
+            }
+
             ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Id", libraryItem.CategoryId);
             return View(libraryItem);
         }
+
 
         // POST: LibraryItems/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,CategoryId,Title,Author,Pages,RunTimeMinutes,IsBorrowable,Borrower,BorrowDate,Type")] LibraryItem libraryItem)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,CategoryId,Title,Author,Pages,RunTimeMinutes,IsBorrowable,Type")] LibraryItem libraryItem)
         {
             if (id != libraryItem.Id)
             {
                 return NotFound();
             }
 
+            var validationErrors = _libraryItemValidationService.ValidateLibraryItem(libraryItem);
+
+            foreach (var error in validationErrors)
+            {
+                ModelState.Remove(error.Key);
+            }
+
             if (ModelState.IsValid)
             {
-                try
+                bool updateResult = await _libraryItemsService.UpdateLibraryItemAsync(id, libraryItem);
+
+                if (!updateResult)
                 {
-                    _context.Update(libraryItem);
-                    await _context.SaveChangesAsync();
+                    return NotFound();
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!LibraryItemExists(libraryItem.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+
                 return RedirectToAction(nameof(Index));
             }
+
+            _blockedFieldClearingService.ClearBlockedFields(libraryItem);
+
             ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Id", libraryItem.CategoryId);
             return View(libraryItem);
         }
@@ -129,15 +155,90 @@ namespace EzLib.Controllers
         // GET: LibraryItems/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null || _context.LibraryItem == null)
+            var libraryItem = await _libraryItemsService.GetLibraryItemForDeleteAsync(id);
+
+            if (libraryItem == null)
             {
                 return NotFound();
             }
 
-            var libraryItem = await _context.LibraryItem
-                .Include(l => l.Category)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            // Check if the item is !borrowable and the borrower is !empty
+            if (!libraryItem.IsBorrowable && !string.IsNullOrEmpty(libraryItem.Borrower))
+            {
+                return Forbid(); // Return forbidden status or redirect to an unauthorized page
+            }
+
+            return View(libraryItem);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            bool isDeleted = await _libraryItemsService.DeleteLibraryItemAsync(id);
+
+            if (!isDeleted)
+            {
+                return NotFound();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+
+        // Logic for borrowing an item
+
+        // GET: LibraryItems/Borrow/5
+        [HttpGet]
+        public async Task<IActionResult> Borrow(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var libraryItem = await _borrowReturnLibraryItemService.GetBorrowableLibraryItemAsync(id.Value);
+
             if (libraryItem == null)
+            {
+                return NotFound();
+            }
+
+            string acronym = _acronymGeneratorService.GenerateAcronym(libraryItem.Title);
+            libraryItem.Title = $"{acronym}";
+
+            ViewBag.Borrower = new SelectList(_context.LibraryItem.Where(x => x.IsBorrowable && string.IsNullOrEmpty(x.Borrower)).Select(x => x.Borrower).Distinct());
+            return View(libraryItem);
+        }
+
+        [HttpPost, ActionName("Borrow")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BorrowConfirmed(int id, string borrower)
+        {
+            var result = await _borrowReturnLibraryItemService.BorrowConfirmed(id, borrower);
+
+            if (!result)
+            {
+                return NotFound();
+            }
+
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        // Logic for returning an item
+
+        // GET: LibraryItems/Return/5
+        [HttpGet]
+        public async Task<IActionResult> Return(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var libraryItem = await _borrowReturnLibraryItemService.GetReturnableLibraryItemAsync(id.Value);
+
+            if (libraryItem == null || string.IsNullOrEmpty(libraryItem.Borrower))
             {
                 return NotFound();
             }
@@ -145,28 +246,25 @@ namespace EzLib.Controllers
             return View(libraryItem);
         }
 
-        // POST: LibraryItems/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost, ActionName("Return")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> ReturnConfirmed(int id, string submit)
         {
-            if (_context.LibraryItem == null)
+            bool isConfirmed = await _borrowReturnLibraryItemService.ConfirmReturnAsync(id);
+
+            if (!isConfirmed)
             {
-                return Problem("Entity set 'EzLibContext.LibraryItem'  is null.");
-            }
-            var libraryItem = await _context.LibraryItem.FindAsync(id);
-            if (libraryItem != null)
-            {
-                _context.LibraryItem.Remove(libraryItem);
+                return NotFound();
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool LibraryItemExists(int id)
-        {
-            return (_context.LibraryItem?.Any(e => e.Id == id)).GetValueOrDefault();
+            if (submit == "yes")
+            {
+                return RedirectToAction(nameof(Details), new { id });
+            }
+            else
+            {
+                return RedirectToAction(nameof(Index));
+            }
         }
     }
 }

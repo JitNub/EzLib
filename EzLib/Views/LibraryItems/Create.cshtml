@@ -13,8 +13,19 @@
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="CategoryId" class="control-label"></label>
-                <select asp-for="CategoryId" class ="form-control" asp-items="ViewBag.CategoryId"></select>
+                <label asp-for="Type" class="control-label"></label>
+                <select id="Type" asp-for="Type" class="form-control">
+                    <option value="Book">Book</option>
+                    <option value="DVD">DVD</option>
+                    <option value="Audio Book">Audio Book</option>
+                    <option value="Reference Book">Reference Book</option>
+                </select>
+                <span asp-validation-for="Type" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Category" class="control-label"></label>
+                <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId"><option> Select</option></select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Title" class="control-label"></label>
@@ -42,21 +53,6 @@
                 </label>
             </div>
             <div class="form-group">
-                <label asp-for="Borrower" class="control-label"></label>
-                <input asp-for="Borrower" class="form-control" />
-                <span asp-validation-for="Borrower" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="BorrowDate" class="control-label"></label>
-                <input asp-for="BorrowDate" class="form-control" />
-                <span asp-validation-for="BorrowDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Type" class="control-label"></label>
-                <input asp-for="Type" class="form-control" />
-                <span asp-validation-for="Type" class="text-danger"></span>
-            </div>
-            <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>
         </form>
@@ -69,4 +65,6 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script src="~/js/validateLibraryItem.js" asp-append-version="true"></script>
 }

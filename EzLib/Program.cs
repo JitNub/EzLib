@@ -1,6 +1,7 @@
 using EzLib.Data;
 using EzLib.Database.Data;
-using EzLib.Services;
+using EzLib.Services.Services;
+using EzLib.Web.Middleware;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,7 +9,19 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+builder.Services.AddScoped<IAcronymGeneratorService, AcronymGeneratorService>(); // Generate Acronym
 builder.Services.AddScoped<ICategoryService, CategoryService>();  // Validation of Category
+builder.Services.AddScoped<ILibraryItemsService, LibraryItemsService>();
+builder.Services.AddScoped<IBorrowReturnLibraryItemService, BorrowReturnLibraryItemService>();
+builder.Services.AddScoped<ILibraryItemValidationService, LibraryItemValidationService>();
+builder.Services.AddScoped<IBlockedFieldClearingService, BlockedFieldClearingService>();
 
 builder.Services.AddDbContext<EzLibContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("EzLibContext") ?? throw new InvalidOperationException("Connection string 'EzLibContext' not found.")));
@@ -37,7 +50,11 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseSession();   // Use session
+
 app.UseAuthorization();
+
+app.UseMiddleware<ErrorHandlingMiddleware>();
 
 app.MapControllerRoute(
     name: "default",
