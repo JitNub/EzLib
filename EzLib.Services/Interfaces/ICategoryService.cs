@@ -18,8 +18,6 @@ namespace EzLib.Services.Services
 
         Task<bool> UpdateCategoryAsync(Category category);
 
-        // fortsättning?
-
         bool CategoryExists(int id);
     }
 }

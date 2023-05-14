@@ -8,8 +8,4 @@
  ██████████  █████████ ███████████ █████ ████████ 
 ░░░░░░░░░░  ░░░░░░░░░ ░░░░░░░░░░░ ░░░░░ ░░░░░░░░  
 
-
-add-migration
-update-database
-
-Categories doesn't by ÅÄÖ
+	Press "Start Debug"

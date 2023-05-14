@@ -12,7 +12,7 @@ namespace EzLib.Controllers
         private readonly IAcronymGeneratorService _acronymGeneratorService;
         private readonly ILibraryItemsService _libraryItemsService;
         private readonly IBorrowReturnLibraryItemService _borrowReturnLibraryItemService;
-        
+
 
         public BorrowReturnLibraryItemController(EzLibContext context, IAcronymGeneratorService acronymGeneratorService, ILibraryItemsService libraryItemsService, IBorrowReturnLibraryItemService borrowReturnLibraryItemService)
         {

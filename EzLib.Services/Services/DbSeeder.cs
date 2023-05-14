@@ -1,5 +1,4 @@
-﻿using EzLib.Data;
-using EzLib.Models;
+﻿using EzLib.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EzLib.Data
@@ -8,6 +7,7 @@ namespace EzLib.Data
     {
         private readonly EzLibContext _context;
 
+        // Constructor takes an instance of the database context
         public DbSeeder(EzLibContext context)
         {
             _context = context;
@@ -15,8 +15,10 @@ namespace EzLib.Data
 
         public async Task SeedAsync()
         {
+            // Apply any pending migrations
             await _context.Database.MigrateAsync();
 
+            // Seed the database with categories if none are present
             if (!await _context.Category.AnyAsync())
             {
                 var categories = CreateCategories();
@@ -24,15 +26,22 @@ namespace EzLib.Data
                 await _context.SaveChangesAsync();
             }
 
+            // Seed the database with library items if none are present
             if (!await _context.LibraryItem.AnyAsync())
             {
+                // Get the list of categories from the database
                 var categories = await _context.Category.ToListAsync();
+
+                // Create the library items
                 var items = CreateLibraryItems(categories);
+
+                // Add the library items to the database
                 await _context.LibraryItem.AddRangeAsync(items);
                 await _context.SaveChangesAsync();
             }
         }
 
+        // Create a list of sample categories
         private static List<Category> CreateCategories()
         {
             return new List<Category>
@@ -44,11 +53,12 @@ namespace EzLib.Data
             };
         }
 
+        // Create a list of sample library items
         private static List<LibraryItem> CreateLibraryItems(List<Category> categories)
         {
             return new List<LibraryItem>
             {
-                // Books
+                    // Books
                     new LibraryItem
                     {
                         Title = "The Great Gatsby",
@@ -106,7 +116,7 @@ namespace EzLib.Data
                     },
                     new LibraryItem
                     {
-                        Title = "Grays Anatomy",    // removed '
+                        Title = "Grays Anatomy",
                         Author = "Henry Gray",
                         Pages = 1600,
                         IsBorrowable = false,
@@ -116,7 +126,7 @@ namespace EzLib.Data
                     // Audiobooks
                     new LibraryItem
                     {
-                        Title = "The Hitchhikers Guide to the Galaxy",      // removed '
+                        Title = "The Hitchhikers Guide to the Galaxy",
                         Author = "Douglas Adams",
                         RunTimeMinutes = 324,
                         IsBorrowable = true,
