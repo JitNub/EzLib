@@ -74,7 +74,7 @@ namespace EzLib.Controllers
                 }
 
                 // Handle the redirection or view rendering after successful borrowing
-                return RedirectToAction("Details", "LibraryItems", new { id = id });
+                return RedirectToAction("Index", "LibraryItems");
             }
             else
             {
@@ -123,7 +123,7 @@ namespace EzLib.Controllers
 
             if (submit == "yes")
             {
-                return RedirectToAction("Details", "LibraryItems", new { id = id });
+                return RedirectToAction("Index", "LibraryItems");
             }
             else
             {

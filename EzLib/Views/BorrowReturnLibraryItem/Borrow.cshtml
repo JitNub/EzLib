@@ -4,18 +4,29 @@
     ViewData["Title"] = "Borrow";
 }
 
-<h1>Borrow @Model.Title</h1>
+<h1>Borrow</h1>
 
-<form asp-action="Borrow" asp-route-id="@Model.Id" method="post">
-    <div class="form-group">
-        <label asp-for="Borrower" class="control-label">Borrower</label>
-        <input asp-for="Borrower" class="form-control" />
-        <span asp-validation-for="Borrower" class="text-danger"></span>
+<h4>@Model.Title</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Borrow" asp-route-id="@Model.Id" method="post">
+            <div class="form-group">
+                <label asp-for="Borrower" class="control-label">Borrower</label>
+                <input asp-for="Borrower" class="form-control" />
+                <span asp-validation-for="Borrower" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Borrow</button>
+            </div>
+        </form>
     </div>
+</div>
 
-    <div class="form-group">
-        <button type="submit" class="btn btn-primary">Borrow</button>
-        <a asp-action="Index" class="btn btn-secondary">Back</a>
-    </div>
-</form>
+<div>
+    <a asp-controller="LibraryItems" asp-action="Index">Back to List</a>
+</div>
 
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

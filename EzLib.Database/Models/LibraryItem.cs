@@ -7,15 +7,15 @@ namespace EzLib.Models
     {
         public int Id { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "The Category field is required.")]
         public int CategoryId { get; set; }
 
         [StringLength(255, ErrorMessage = "Title must be between 1 and 255 characters.", MinimumLength = 1)]
-        //[RegularExpression(@"^[\p{L}\s.'-äåöÄÅÖ\d]+[\p{L}\s.'-äåöÄÅÖ\d]*$", ErrorMessage = "The title name must match the format.")]
+        [RegularExpression(@"^[^<>&'\""\/|{}[\]*%\\\\^]+$", ErrorMessage = "Title should not contain any special characters or symbols.")]
         public string Title { get; set; }
 
         [StringLength(255, ErrorMessage = "Author must be between 1 and 255 characters.", MinimumLength = 1)]
-        //[RegularExpression(@"^[\p{L}\s.'-äåöÄÅÖ]+[\s][\p{L}\s.'-äåöÄÅÖ]+$", ErrorMessage = "The author name must match the full name format.")]
+        [RegularExpression(@"^[^<>&'\""\/|{}[\]*%\\\\^]+$", ErrorMessage = "Author should not contain any special characters or symbols.")]
         public string Author { get; set; } = String.Empty;
 
         [Range(1, 10000, ErrorMessage = "Pages must be between 1 and 10000.")]
@@ -27,7 +27,7 @@ namespace EzLib.Models
         public bool IsBorrowable { get; set; }
 
         [StringLength(255, ErrorMessage = "Borrower must be between 1 and 255 characters.", MinimumLength = 1)]
-        //[RegularExpression(@"^[\p{L}\s.'-äåöÄÅÖ]+[\s][\p{L}\s.'-äåöÄÅÖ]+$", ErrorMessage = "The borrower name must match the full name format.")]
+        [RegularExpression(@"^[^<>&'\""\/|{}[\]*%\\\\^]+$", ErrorMessage = "Borrower should not contain any special characters or symbols.")]
         public string Borrower { get; set; } = String.Empty;
 
         public DateTime? BorrowDate { get; set; }

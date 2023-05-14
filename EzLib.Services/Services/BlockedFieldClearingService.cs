@@ -8,18 +8,16 @@ namespace EzLib.Services.Services
         {
             if (libraryItem.Type == "Book")
             {
-                libraryItem.Author = null;
-                libraryItem.Pages = null;
                 libraryItem.RunTimeMinutes = null;
             }
             else if (libraryItem.Type == "DVD")
             {
-                libraryItem.Author = null;
+                libraryItem.Author = String.Empty;
                 libraryItem.Pages = null;
             }
             else if (libraryItem.Type == "Audio Book")
             {
-                libraryItem.Author = null;
+                libraryItem.Author = String.Empty;
                 libraryItem.Pages = null;
             }
             else if (libraryItem.Type == "Reference Book")

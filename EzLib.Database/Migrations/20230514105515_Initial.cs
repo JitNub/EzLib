@@ -15,7 +15,7 @@ namespace EzLib.Database.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    CategoryName = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    CategoryName = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -47,12 +47,12 @@ namespace EzLib.Database.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Author = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Author = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     Pages = table.Column<int>(type: "int", nullable: true),
                     RunTimeMinutes = table.Column<int>(type: "int", nullable: true),
                     IsBorrowable = table.Column<bool>(type: "bit", nullable: false),
-                    Borrower = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Borrower = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     BorrowDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Type = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },

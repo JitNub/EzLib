@@ -16,3 +16,10 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+.disabled-link {
+    pointer-events: none;
+    color: #000000;
+    cursor: default;
+    text-decoration: none;
+}

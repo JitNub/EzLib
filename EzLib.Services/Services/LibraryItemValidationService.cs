@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using EzLib.Models;
+﻿using EzLib.Models;
 
 namespace EzLib.Services.Services
 {

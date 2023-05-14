@@ -110,7 +110,7 @@ namespace EzLib.Controllers
                 return Forbid(); // Return forbidden status or redirect to an unauthorized page
             }
 
-            ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Id", libraryItem.CategoryId);
+            ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "CategoryName");
             return View(libraryItem);
         }
 
@@ -146,7 +146,7 @@ namespace EzLib.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            _blockedFieldClearingService.ClearBlockedFields(libraryItem);
+            //_blockedFieldClearingService.ClearBlockedFields(libraryItem);     // används inte, ta bort?
 
             ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Id", libraryItem.CategoryId);
             return View(libraryItem);
@@ -183,88 +183,6 @@ namespace EzLib.Controllers
             }
 
             return RedirectToAction(nameof(Index));
-        }
-
-
-        // Logic for borrowing an item
-
-        // GET: LibraryItems/Borrow/5
-        [HttpGet]
-        public async Task<IActionResult> Borrow(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var libraryItem = await _borrowReturnLibraryItemService.GetBorrowableLibraryItemAsync(id.Value);
-
-            if (libraryItem == null)
-            {
-                return NotFound();
-            }
-
-            string acronym = _acronymGeneratorService.GenerateAcronym(libraryItem.Title);
-            libraryItem.Title = $"{acronym}";
-
-            ViewBag.Borrower = new SelectList(_context.LibraryItem.Where(x => x.IsBorrowable && string.IsNullOrEmpty(x.Borrower)).Select(x => x.Borrower).Distinct());
-            return View(libraryItem);
-        }
-
-        [HttpPost, ActionName("Borrow")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> BorrowConfirmed(int id, string borrower)
-        {
-            var result = await _borrowReturnLibraryItemService.BorrowConfirmed(id, borrower);
-
-            if (!result)
-            {
-                return NotFound();
-            }
-
-            return RedirectToAction(nameof(Details), new { id });
-        }
-
-        // Logic for returning an item
-
-        // GET: LibraryItems/Return/5
-        [HttpGet]
-        public async Task<IActionResult> Return(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var libraryItem = await _borrowReturnLibraryItemService.GetReturnableLibraryItemAsync(id.Value);
-
-            if (libraryItem == null || string.IsNullOrEmpty(libraryItem.Borrower))
-            {
-                return NotFound();
-            }
-
-            return View(libraryItem);
-        }
-
-        [HttpPost, ActionName("Return")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ReturnConfirmed(int id, string submit)
-        {
-            bool isConfirmed = await _borrowReturnLibraryItemService.ConfirmReturnAsync(id);
-
-            if (!isConfirmed)
-            {
-                return NotFound();
-            }
-
-            if (submit == "yes")
-            {
-                return RedirectToAction(nameof(Details), new { id });
-            }
-            else
-            {
-                return RedirectToAction(nameof(Index));
-            }
         }
     }
 }

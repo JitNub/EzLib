@@ -1,5 +1,4 @@
 using EzLib.Data;
-using EzLib.Database.Data;
 using EzLib.Services.Services;
 using EzLib.Web.Middleware;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +21,8 @@ builder.Services.AddScoped<ILibraryItemsService, LibraryItemsService>();
 builder.Services.AddScoped<IBorrowReturnLibraryItemService, BorrowReturnLibraryItemService>();
 builder.Services.AddScoped<ILibraryItemValidationService, LibraryItemValidationService>();
 builder.Services.AddScoped<IBlockedFieldClearingService, BlockedFieldClearingService>();
+builder.Services.AddScoped<IDbInitializer, DbInitializer>();
+builder.Services.AddScoped<IDbSeeder, DbSeeder>();
 
 builder.Services.AddDbContext<EzLibContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("EzLibContext") ?? throw new InvalidOperationException("Connection string 'EzLibContext' not found.")));
@@ -41,16 +42,22 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
 
     var context = services.GetRequiredService<EzLibContext>();
+    await context.Database.MigrateAsync();
 
-    DbInitializer.Initialize(context);
+    var initializer = services.GetRequiredService<IDbInitializer>();
+    await initializer.InitializeAsync();
+
+    var seeder = services.GetRequiredService<IDbSeeder>();
+    await seeder.SeedAsync();
 }
+
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseRouting();
-
 app.UseSession();   // Use session
+
+app.UseRouting();
 
 app.UseAuthorization();
 
@@ -58,6 +65,6 @@ app.UseMiddleware<ErrorHandlingMiddleware>();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=LibraryItems}/{action=Index}/{id?}");
 
 app.Run();
