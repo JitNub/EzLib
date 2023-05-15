@@ -13,7 +13,7 @@ namespace EzLib.Controllers
         private readonly ILibraryItemsService _libraryItemsService;
         private readonly IBorrowReturnLibraryItemService _borrowReturnLibraryItemService;
 
-
+        // Constructor that injects EzLibContext, IAcronymGeneratorService, ILibraryItemsService, and IBorrowReturnLibraryItemService dependencies
         public BorrowReturnLibraryItemController(EzLibContext context, IAcronymGeneratorService acronymGeneratorService, ILibraryItemsService libraryItemsService, IBorrowReturnLibraryItemService borrowReturnLibraryItemService)
         {
             _context = context;
@@ -114,6 +114,7 @@ namespace EzLib.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReturnConfirmed(int id, string submit)
         {
+            // Confirm the return of the library item
             bool isConfirmed = await _borrowReturnLibraryItemService.ConfirmReturnAsync(id);
 
             if (!isConfirmed)
@@ -121,12 +122,15 @@ namespace EzLib.Controllers
                 return NotFound();
             }
 
+            // Determine the action to take based on the value of the 'submit' parameter
             if (submit == "yes")
             {
+                // Redirect to the Index action of the LibraryItems controller
                 return RedirectToAction("Index", "LibraryItems");
             }
             else
             {
+                // Redirect to the Index action of the current controller
                 return RedirectToAction(nameof(Index));
             }
         }

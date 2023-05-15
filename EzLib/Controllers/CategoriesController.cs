@@ -11,6 +11,7 @@ namespace EzLib.Controllers
         private readonly EzLibContext _context;
         private readonly ICategoryService _categoryService;
 
+        // Constructor that injects EzLibContext and ICategoryService dependencies
         public CategoriesController(EzLibContext context, ICategoryService categoryService)
         {
             _context = context;
@@ -22,6 +23,7 @@ namespace EzLib.Controllers
         {
             try
             {
+                // Retrieve categories from the category service
                 var categories = await _categoryService.GetCategoriesAsync();
                 return View(categories);
             }
@@ -34,6 +36,7 @@ namespace EzLib.Controllers
         // GET: Categories/Details/5
         public async Task<IActionResult> Details(int? id)
         {
+            // Retrieve category details from the category service
             var category = await _categoryService.GetCategoryByIdAsync(id);
 
             if (category == null)
@@ -44,27 +47,27 @@ namespace EzLib.Controllers
             return View(category);
         }
 
-        // GET: Categories/Create   // No seperate service needed
+        // GET: Categories/Create
         public IActionResult Create()
         {
             return View();
         }
 
         // POST: Categories/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,CategoryName")] Category category)
         {
             if (ModelState.IsValid)
             {
+                // Check if the category name is unique
                 if (!await _categoryService.IsCategoryNameUnique(category))
                 {
                     ModelState.AddModelError(string.Empty, "Category name must be unique.");
                     return View(category);
                 }
 
+                // Create the category using the category service
                 await _categoryService.CreateCategoryAsync(category);
                 return RedirectToAction(nameof(Index));
             }
@@ -81,6 +84,7 @@ namespace EzLib.Controllers
                 return NotFound();
             }
 
+            // Retrieve category details from the category service
             var category = await _categoryService.GetCategoryAsync(id);
             if (category == null)
             {
@@ -91,8 +95,6 @@ namespace EzLib.Controllers
         }
 
         // POST: Categories/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,CategoryName")] Category category)
@@ -104,12 +106,14 @@ namespace EzLib.Controllers
 
             if (ModelState.IsValid)
             {
+                // Check if the category name is unique
                 if (!await _categoryService.IsCategoryNameUnique(category))
                 {
                     ModelState.AddModelError(string.Empty, "Category name must be unique.");
                     return View(category);
                 }
 
+                // Update the category using the category service
                 bool updateResult = await _categoryService.UpdateCategoryAsync(category);
 
                 if (!updateResult)
@@ -130,11 +134,11 @@ namespace EzLib.Controllers
             return View(category);
         }
 
-        // klar
 
-        // GET: Categories/Delete/5     // funkar denna tro?
+        // GET: Categories/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
+            // Retrieve category details from the category service
             var category = await _categoryService.GetCategoryByIdAsync(id);
 
             if (category == null)
@@ -145,11 +149,12 @@ namespace EzLib.Controllers
             return View(category);
         }
 
-        // POST: Categories/Delete/5        // denna kvar bara?
+        // POST: Categories/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            // Check if the category can be deleted
             if (!await _categoryService.CanDeleteCategoryAsync(id))
             {
                 ModelState.AddModelError(string.Empty, "Category is referenced by one or more library items and cannot be deleted.");
@@ -158,8 +163,10 @@ namespace EzLib.Controllers
 
             if (_context.Category == null)
             {
-                return Problem("Entity set 'EzLibContext.Category'  is null.");
+                return Problem("Entity set 'EzLibContext.Category' is null.");
             }
+
+            // Find the category and remove it from the context
             var category = await _context.Category.FindAsync(id);
             if (category != null)
             {

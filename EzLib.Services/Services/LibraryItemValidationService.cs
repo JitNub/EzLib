@@ -4,10 +4,12 @@ namespace EzLib.Services.Services
 {
     public class LibraryItemValidationService : ILibraryItemValidationService
     {
+        // Method to validate a library item and return a dictionary of errors
         public Dictionary<string, string> ValidateLibraryItem(LibraryItem libraryItem)
         {
             var errors = new Dictionary<string, string>();
 
+            // Validation logic based on the library item's type
             if (libraryItem.Type == "Book")
             {
                 errors.Add("Borrower", "The Borrower field is not required for this item.");

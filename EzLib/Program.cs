@@ -19,11 +19,12 @@ builder.Services.AddScoped<IAcronymGeneratorService, AcronymGeneratorService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();  // Validation of Category
 builder.Services.AddScoped<ILibraryItemsService, LibraryItemsService>();
 builder.Services.AddScoped<IBorrowReturnLibraryItemService, BorrowReturnLibraryItemService>();
-builder.Services.AddScoped<ILibraryItemValidationService, LibraryItemValidationService>();
-builder.Services.AddScoped<IBlockedFieldClearingService, BlockedFieldClearingService>();
+builder.Services.AddScoped<ILibraryItemValidationService, LibraryItemValidationService>();  // Validation of LibraryItem
+builder.Services.AddScoped<IBlockedFieldClearingService, BlockedFieldClearingService>(); // Didn't need this one
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 builder.Services.AddScoped<IDbSeeder, DbSeeder>();
 
+// Add database context
 builder.Services.AddDbContext<EzLibContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("EzLibContext") ?? throw new InvalidOperationException("Connection string 'EzLibContext' not found.")));
 
@@ -37,6 +38,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Apply database migrations, initialize the database, and seed data
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;

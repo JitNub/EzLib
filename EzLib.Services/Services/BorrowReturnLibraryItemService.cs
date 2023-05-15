@@ -9,12 +9,14 @@ namespace EzLib.Services.Services
         private readonly EzLibContext _context;
         private readonly IAcronymGeneratorService _acronymGeneratorService;
 
+        // Constructor that injects EzLibContext and IAcronymGeneratorService dependencies
         public BorrowReturnLibraryItemService(EzLibContext context, IAcronymGeneratorService acronymGeneratorService)
         {
             _context = context;
             _acronymGeneratorService = acronymGeneratorService;
         }
 
+        // Retrieves a borrowable library item by ID
         public async Task<LibraryItem> GetBorrowableLibraryItemAsync(int id)
         {
             return await _context.LibraryItem
@@ -22,6 +24,7 @@ namespace EzLib.Services.Services
                 .FirstOrDefaultAsync(m => m.Id == id && m.IsBorrowable && string.IsNullOrEmpty(m.Borrower));
         }
 
+        // Confirms the borrowing of a library item
         public async Task<bool> BorrowConfirmed(int id, string borrower)
         {
             var libraryItem = await _context.LibraryItem.FindAsync(id);
@@ -50,11 +53,13 @@ namespace EzLib.Services.Services
             return true;
         }
 
+        // Retrieves a returnable library item by ID
         public async Task<LibraryItem> GetReturnableLibraryItemAsync(int id)
         {
             return await _context.LibraryItem.FindAsync(id);
         }
 
+        // Confirms the return of a library item
         public async Task<bool> ConfirmReturnAsync(int id)
         {
             var libraryItem = await _context.LibraryItem.FindAsync(id);

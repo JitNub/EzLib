@@ -4,7 +4,9 @@ namespace EzLib.Services.Services
 {
     public interface ILibraryItemsService
     {
-        Task<(IQueryable<LibraryItem> libraryItems, string sortByType)> GetLibraryItemsAsync(string sortByType);
+        Task<bool> IsLibraryItemTitleUnique(LibraryItem libraryItem);
+
+        Task<(IQueryable<LibraryItem> libraryItems, string sortByType)> GetLibraryItemsAsync(string sortByType, string searchString);
 
         Task<LibraryItem> GetLibraryItemDetailsAsync(int? id);
 

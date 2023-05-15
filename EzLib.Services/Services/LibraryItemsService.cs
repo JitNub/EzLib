@@ -1,6 +1,7 @@
 ﻿using EzLib.Data;
 using EzLib.Models;
 using Microsoft.EntityFrameworkCore;
+
 namespace EzLib.Services.Services
 {
     public class LibraryItemsService : ILibraryItemsService
@@ -8,15 +9,28 @@ namespace EzLib.Services.Services
         private readonly EzLibContext _context;
         private readonly IAcronymGeneratorService _acronymGeneratorService;
 
+        // Constructor that injects EzLibContext and IAcronymGeneratorService dependencies
         public LibraryItemsService(EzLibContext context, IAcronymGeneratorService acronymGeneratorService)
         {
             _context = context;
             _acronymGeneratorService = acronymGeneratorService;
         }
 
-        public async Task<(IQueryable<LibraryItem> libraryItems, string sortByType)> GetLibraryItemsAsync(string sortByType)
+        // Checks if the library item title is unique
+        public async Task<bool> IsLibraryItemTitleUnique(LibraryItem libraryItem)
         {
-            IQueryable<LibraryItem> ezLibContext = _context.LibraryItem.Include(l => l.Category);
+            return await _context.LibraryItem.AllAsync(li => li.Id == libraryItem.Id || li.Title != libraryItem.Title);
+        }
+
+        // Retrieves library items based on sorting type and search string
+        public async Task<(IQueryable<LibraryItem> libraryItems, string sortByType)> GetLibraryItemsAsync(string sortByType, string searchString)
+        {
+            IQueryable<LibraryItem> ezLibContext = _context.LibraryItem.Include(l => l.Category).AsNoTracking();
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                ezLibContext = ezLibContext.Where(li => li.Title.Contains(searchString, StringComparison.OrdinalIgnoreCase));
+            }
 
             if (sortByType == "Type")
             {
@@ -38,6 +52,7 @@ namespace EzLib.Services.Services
             return (libraryItems.AsQueryable(), sortByType);
         }
 
+        // Retrieves library item details by ID
         public async Task<LibraryItem> GetLibraryItemDetailsAsync(int? id)
         {
             if (id == null || _context.LibraryItem == null)
@@ -47,6 +62,7 @@ namespace EzLib.Services.Services
 
             var libraryItem = await _context.LibraryItem
                 .Include(l => l.Category)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (libraryItem != null)
@@ -58,6 +74,7 @@ namespace EzLib.Services.Services
             return libraryItem;
         }
 
+        // Creates a new library item
         public async Task<LibraryItem> CreateLibraryItemAsync(LibraryItem libraryItem)
         {
             _context.Add(libraryItem);
@@ -65,6 +82,7 @@ namespace EzLib.Services.Services
             return libraryItem;
         }
 
+        // Retrieves a library item by ID
         public async Task<LibraryItem> GetLibraryItemAsync(int? id)
         {
             if (id == null)
@@ -72,10 +90,13 @@ namespace EzLib.Services.Services
                 return null;
             }
 
-            var libraryItem = await _context.LibraryItem.FindAsync(id);
+            var libraryItem = await _context.LibraryItem.AsNoTracking()
+                .FirstOrDefaultAsync(m => m.Id == id);
+
             return libraryItem;
         }
 
+        // Updates a library item
         public async Task<bool> UpdateLibraryItemAsync(int id, LibraryItem libraryItem)
         {
             if (id != libraryItem.Id)
@@ -103,11 +124,13 @@ namespace EzLib.Services.Services
             return true;
         }
 
+        // Checks if a library item with the given ID exists
         private bool LibraryItemExists(int id)
         {
             return (_context.LibraryItem?.Any(e => e.Id == id)).GetValueOrDefault();
         }
 
+        // Retrieves library item details for deletion by ID
         public async Task<LibraryItem> GetLibraryItemForDeleteAsync(int? id)
         {
             if (id == null || _context.LibraryItem == null)
@@ -117,11 +140,13 @@ namespace EzLib.Services.Services
 
             var libraryItem = await _context.LibraryItem
                 .Include(l => l.Category)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             return libraryItem;
         }
 
+        // Deletes a library item by ID
         public async Task<bool> DeleteLibraryItemAsync(int id)
         {
             if (_context.LibraryItem == null)

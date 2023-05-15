@@ -21,7 +21,6 @@
             {
                 _logger.LogError(ex, "An unhandled exception occurred.");
 
-                // Customize the error response as needed
                 context.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 context.Response.ContentType = "text/plain";
                 await context.Response.WriteAsync("An error occurred. Please try again later.");
